@@ -2,18 +2,72 @@
 
 import os
 from flask import Flask, render_template, request
+from datetime import datetime
 app = Flask(__name__)
 
 from imdb import IMDb
 ia = IMDb()
+default_infoset = ia.get_movie_infoset()
 
-@app.route("/test")
-def imdb():
-    search = request.args.get('search')
+def get_split(results):
+    return dict(map(lambda x: x.split("::"), results))
 
+def get_split_key(results, key):
+    return get_split(results)[key]
+
+def to_date(date_string):
+    return datetime.strptime(date_string, '%d %B %Y').date()
+
+def get_first_result_key(search, key):
+    return ia.search_movie(search)[0][key]
+
+def annotate_result_safe(result, infoset=default_infoset):
+    for info in infoset:
+        try:
+            ia.update(result, info=[info])
+        except:
+            print("error: " + str(info))
+            pass
+
+
+def get_imdb_results(search):
+    return ia.search_movie(search)
+
+def get_imdb_result(search, index=0):
+    return get_imdb_results(search)[index]
+
+def get_imdb_result(search, index=0):
+    return get_imdb_results(search)[index]
+
+@app.route("/imdb/<search>/", defaults={'index': 0})
+@app.route("/imdb/<search>/<int:index>")
+def imdb(search, index):
     results = ia.search_movie(search)
-    
-    return render_template('results.html', results=results)
+    result = results[index]
+
+    annotate_result_safe(result, ['release dates'])
+    attributes = { k: result.get(k) for k in result.current_info }
+
+    limit = to_date(get_split_key(attributes['release dates'], 'UK'))
+
+    return render_template(
+        'imdb.html',
+        results=results,
+        info=default_infoset,
+        limit=limit,
+        attributes=attributes
+    )
+
+@app.route("/limit")
+def limit():
+    search = request.args.get('search')
+    tilds = request.args.get('tilds')
+
+    year = get_first_result_key(search, 'year')
+
+    limit = datetime(year, 10, 10, 1, 1, 1)
+
+    return render_template('results.html', a=limit)
 
 @app.route("/")
 def index():

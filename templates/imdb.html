@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <title>Flask React</title>
+  </head>
+  <body>
+    <div>RESULTS</div>
+    <ul>
+      {% for result in results %}
+        <li>{{ result }}</li>
+      {% endfor %}
+    </ul>
+    <br/>
+
+    <div>LIMIT</div>
+    {{ limit }}
+    <br/>
+    <br/>
+
+    <div>ATTRIBUTES</div>
+    {{ info }}
+    <br/>
+    <ul>
+      {% for k, v in attributes.items() %}
+        <li><b>{{ k }}</b>: {{ v }}</li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
