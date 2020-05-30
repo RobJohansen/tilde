@@ -29,7 +29,6 @@ def annotate_result_safe(result, infoset=default_infoset):
             print("error: " + str(info))
             pass
 
-
 def get_imdb_results(search):
     return ia.search_movie(search)
 
@@ -38,6 +37,14 @@ def get_imdb_result(search, index=0):
 
 def get_imdb_result(search, index=0):
     return get_imdb_results(search)[index]
+
+def get_imdb_limit(search, region='UK'):
+    key = 'release dates'
+
+    results = ia.search_movie(search)
+    result = ia.get_movie(results[0].getID(), info=[key])
+
+    return to_date(get_split_key(result[key], region))
 
 @app.route("/imdb/<search>/", defaults={'index': 0})
 @app.route("/imdb/<search>/<int:index>")
@@ -63,11 +70,12 @@ def limit():
     search = request.args.get('search')
     tilds = request.args.get('tilds')
 
-    year = get_first_result_key(search, 'year')
+    limit = get_imdb_limit(search)
 
-    limit = datetime(year, 10, 10, 1, 1, 1)
-
-    return render_template('results.html', a=limit)
+    return render_template(
+        'limit.html',
+        limit=limit
+    )
 
 @app.route("/")
 def index():
