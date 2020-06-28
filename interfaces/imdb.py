@@ -16,7 +16,7 @@ def get_split_key(results, key):
     return get_split(results)[key]
 
 def to_date_time(date_string):
-    return datetime.strptime(date_string, '%d %B %Y')
+    return datetime.strptime(' '.join(date_string.split(' ')[:3]), '%d %B %Y')
 
 def get_first_result_key(search, key):
     return ia.search_movie(search)[0][key]
