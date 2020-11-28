@@ -25,9 +25,8 @@ def annotate_result_safe(result, infoset=default_infoset):
     for info in infoset:
         try:
             ia.update(result, info=[info])
-        except:
+        except (Exception):
             print("error: " + str(info))
-            pass
 
 def get_imdb_results(search):
     return ia.search_movie(search)
