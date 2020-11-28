@@ -1,5 +1,6 @@
 from flask import render_template, request
 from app import app
+from app.models import User
 
 from app.services.wiki import get_wiki_url
 from app.services.imdb import get_movie, annotate_result_safe, get_split_key, to_date_time, get_imdb_limit, default_infoset
@@ -10,9 +11,12 @@ def favicon():
 
 @app.route("/")
 def index():
-    tilds = request.args.get('tilds')
+    # tilds = request.args.get('tilds')
 
-    return render_template('index.html')
+    return render_template(
+        'index.html',
+        user=User.query.first()
+    )
 
 @app.route("/imdb/<search>/", defaults={'index': 0})
 @app.route("/imdb/<search>/<int:index>")
