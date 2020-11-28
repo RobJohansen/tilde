@@ -23,7 +23,7 @@ def get_json(url):
     try:
         return requests.get(url).json()
 
-    except:
+    except (Exception):
         return None
 
 def get_wiki_rev(page_title, timestamp):

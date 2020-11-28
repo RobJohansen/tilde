@@ -4,6 +4,6 @@
 3. pip install -r requirements.txt
 
 # Run
-1. python server.py
-2. http://localhost:3000
+1. flask run
+2. http://127.0.0.1:5000
 3. npm run start (separate terminal)
