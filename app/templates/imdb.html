@@ -6,22 +6,22 @@
   <body>
     <div>RESULTS</div>
     <ul>
-      {% for result in results %}
+      {% for result in item.results %}
         <li>{{ result }}</li>
       {% endfor %}
     </ul>
     <br/>
 
     <div>LIMIT</div>
-    {{ limit }}
+    {{ item.result_release_date }}
     <br/>
     <br/>
 
     <div>ATTRIBUTES</div>
-    {{ info }}
+    {{ item.KEYS }}
     <br/>
     <ul>
-      {% for k, v in attributes.items() %}
+      {% for k, v in item.result_attributes.items() %}
         <li><b>{{ k }}</b>: {{ v }}</li>
       {% endfor %}
     </ul>

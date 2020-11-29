@@ -3,7 +3,7 @@ from app import app
 from app.models import User
 
 from app.services.wiki import get_wiki_url
-from app.services.imdb import get_movie, annotate_result_safe, get_split_key, to_date_time, get_imdb_limit, default_infoset
+from app.services.imdb import ImdbItem
 
 @app.route('/favicon.ico')
 def favicon():
@@ -21,29 +21,20 @@ def index():
 @app.route("/imdb/<search>/", defaults={'index': 0})
 @app.route("/imdb/<search>/<int:index>")
 def search_imdb(search, index):
-    results = get_movie(search)
-    result = results[index]
-
-    annotate_result_safe(result, ['release dates'])
-    attributes = { k: result.get(k) for k in result.current_info }
-
-    limit = to_date_time(get_split_key(attributes['release dates'], 'UK'))
+    item = ImdbItem(search, index)
 
     return render_template(
         'imdb.html',
-        results=results,
-        info=default_infoset,
-        limit=limit,
-        attributes=attributes
+        item=item
     )
 
 @app.route("/wiki/<imdb_page>/<wiki_page>")
 def search_wiki(imdb_page, wiki_page):
-    limit = get_imdb_limit(imdb_page)
-    page = get_wiki_url(wiki_page, limit)
+    item = ImdbItem(imdb_page, 0)
+    page = get_wiki_url(wiki_page, item.result_release_date)
 
     return render_template(
         'wiki.html',
-        limit=limit,
+        item=item,
         url=page
     )
