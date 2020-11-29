@@ -4,40 +4,64 @@ from datetime import datetime
 from imdb import IMDb
 
 ia = IMDb()
-default_infoset = ia.get_movie_infoset()
 
-def get_movie(search):
+DEFAULT_KEYS = ia.get_movie_infoset()
+
+def search_items(search):
     return ia.search_movie(search)
 
-def get_split(results):
-    return dict(map(lambda x: x.split("::"), results))
+def get_item(id, keys=DEFAULT_KEYS):
+    return ia.get_movie(id, keys)
 
-def get_split_key(results, key):
-    return get_split(results)[key]
+def update_item(result, key):
+    ia.update(result, info=[key])
 
-def to_date_time(date_string):
-    return datetime.strptime(' '.join(date_string.split(' ')[:3]), '%d %B %Y')
+class ImdbItem:
 
-def get_first_result_key(search, key):
-    return ia.search_movie(search)[0][key]
+    REGION = 'UK'
+    RELEASE_DATE_KEY = 'release dates'
+    KEYS = [RELEASE_DATE_KEY]
 
-def annotate_result_safe(result, infoset=default_infoset):
-    for info in infoset:
-        try:
-            ia.update(result, info=[info])
-        except (Exception):
-            print("error: " + str(info))
+    results = None
+    result_raw = None
+    result_annotated = None
+    result_attributes = None
+    result_release_date = None
 
-def get_imdb_results(search):
-    return ia.search_movie(search)
+    def __get_attributes(self, result):
+        for key in self.KEYS:
+            try:
+                update_item(result, key)
 
-def get_imdb_result(search, index=0):
-    return get_imdb_results(search)[index]
+            except (Exception):
+                print("key error: " + str(key))
 
-def get_imdb_limit(search, region='UK'):
-    key = 'release dates'
+        return { k: result.get(k) for k in result.current_info }
 
-    results = ia.search_movie(search)
-    result = ia.get_movie(results[0].getID(), info=[key])
+    def __parse_keys(self, results):
+        return dict(map(lambda x: x.split("::"), results))
 
-    return to_date_time(get_split_key(result[key], region))
+    def __parse_key(self, results, key):
+        return self.__parse_keys(results)[key]
+
+    def __to_date_time(self, date_string):
+        return datetime.strptime(' '.join(date_string.split(' ')[:3]), '%d %B %Y')
+
+    def __init__(self, search_term, search_index):
+        self.results = search_items(search_term)
+
+        self.result_raw = self.results[search_index]
+
+        self.result_annotated = get_item(self.result_raw.getID(), self.KEYS)
+
+        self.result_attributes = self.__get_attributes(self.result_raw)
+
+        self.result_release_date = self.__to_date_time(
+            self.__parse_key(
+                self.result_attributes[self.RELEASE_DATE_KEY],
+                self.REGION
+            )
+        )
+
+    def __repr__(self):
+        return '<Imdb {}>'.format(self.result_raw)
