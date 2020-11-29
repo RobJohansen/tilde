@@ -1,6 +1,6 @@
 from flask import render_template, request
-from app import app
-from app.models import User
+from app import app, db
+from app.models import User, Node
 
 from app.services.wiki import get_wiki_url
 from app.services.imdb import ImdbItem
@@ -21,11 +21,22 @@ def index():
 @app.route("/imdb/<search>/", defaults={'index': 0})
 @app.route("/imdb/<search>/<int:index>")
 def search_imdb(search, index):
-    item = ImdbItem(search, index)
+    node = Node.query.filter_by(name=search).first()
+
+    if node is None:
+        item = ImdbItem(search, index)
+
+        node = Node(
+            name=search,
+            timestamp=item.result_release_date
+        )
+
+        db.session.add(node)
+        db.session.commit()
 
     return render_template(
-        'imdb.html',
-        item=item
+        'node.html',
+        node=node
     )
 
 @app.route("/wiki/<imdb_page>/<wiki_page>")
