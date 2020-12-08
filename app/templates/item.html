@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <title>Flask React</title>
+  </head>
+  <body>
+    {{ item.node.id }}<br/>
+    {{ item.node.name }}<br/>
+    {{ item.node.timestamp }}<br/>
+    <br/>
+    <ul>
+      {% for i_season, season_episodes in item.sub_nodes.items() %}
+        <li>
+          <b>{{ i_season }}</b>
+          <ul>
+            {% for i_episode, episode in season_episodes.items() %}
+              <li>{{ i_episode }} - {{ episode.id }} - {{ episode.name }} - {{ episode.timestamp }}</li>
+            {% endfor %}
+          </ul>
+        </li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
