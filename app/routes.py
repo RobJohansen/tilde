@@ -18,6 +18,14 @@ def index():
         user=User.query.first()
     )
 
+@app.route("/imdb/item/<search>", defaults={'index': 0})
+@app.route("/imdb/item/<search>/<int:index>")
+def search_imdb_item(search, index):
+    return render_template(
+        'item.html',
+        item = ImdbItem(search, index)
+    )
+
 @app.route("/imdb/<search>/", defaults={'index': 0})
 @app.route("/imdb/<search>/<int:index>")
 def search_imdb(search, index):
