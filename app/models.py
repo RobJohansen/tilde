@@ -22,6 +22,7 @@ class NodeTerm(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     term = db.Column(db.String(64), index=True, unique=True)
     node_id = db.Column(db.Integer, db.ForeignKey('node.id'))
+    node = db.relationship("Node", back_populates="terms")
 
     def __repr__(self):
         return '<NodeTerm {} {}>'.format(self.term, self.node_id)
