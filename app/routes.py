@@ -1,6 +1,6 @@
 from flask import render_template, request
 from app import app, db
-from app.models import User, Node
+from app.models import User, Node, NodeTerm
 
 from app.services.wiki import get_wiki_url
 from app.services.imdb import ImdbItem
@@ -11,40 +11,47 @@ def favicon():
 
 @app.route("/")
 def index():
-    # tilds = request.args.get('tilds')
-
     return render_template(
         'index.html',
         user=User.query.first()
     )
 
-@app.route("/imdb/item/<search>", defaults={'index': 0})
-@app.route("/imdb/item/<search>/<int:index>")
-def search_imdb_item(search, index):
-    return render_template(
-        'item.html',
-        item = ImdbItem(search, index)
-    )
-
 @app.route("/imdb/<search>/", defaults={'index': 0})
 @app.route("/imdb/<search>/<int:index>")
 def search_imdb(search, index):
-    node = Node.query.filter_by(name=search).first()
+    force = request.args.get('force') is not None
 
-    if node is None:
+    item = None
+    term = NodeTerm.query.filter_by(term=search).first()
+
+    if force or term is None:
+        # todo: prune based on search
+        if force:
+            Node.query.delete()
+            NodeTerm.query.delete()
+            db.session.commit()
+
         item = ImdbItem(search, index)
 
         node = Node(
-            name=search,
-            timestamp=item.result_release_date
+            name=item.node.name,
+            timestamp=item.node.timestamp
+        )
+
+        term = NodeTerm(
+            term=search,
+            node=node
         )
 
         db.session.add(node)
+        db.session.add(term)
+
         db.session.commit()
 
     return render_template(
         'node.html',
-        node=node
+        node=term.node,
+        item=item
     )
 
 @app.route("/wiki/<imdb_page>/<wiki_page>")
