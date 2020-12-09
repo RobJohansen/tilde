@@ -33,17 +33,36 @@ def search_imdb(search, index):
 
         item = ImdbItem(search, index)
 
-        node = Node(
-            name=item.node.name,
-            timestamp=item.node.timestamp
-        )
+        node = Node.query.filter_by(name=item.node.name).first()
+
+        # create node structure
+        if node is None:
+            node = Node(
+                name=item.node.name,
+                timestamp=item.node.timestamp
+            )
+            db.session.add(node)
+
+            for (key, sub_nodes) in item.sub_nodes.items():
+                parent_node = Node(
+                    name="Season {}".format(key),
+                    timestamp=min(map(lambda n: n.timestamp, sub_nodes.values())),
+                    parent=node
+                )
+                db.session.add(parent_node)
+
+                for (_, sub_node) in sub_nodes.items():
+                    child_node = Node(
+                        name=sub_node.name,
+                        timestamp=sub_node.timestamp,
+                        parent=parent_node
+                    )
+                    db.session.add(child_node)
 
         term = NodeTerm(
             term=search,
             node=node
         )
-
-        db.session.add(node)
         db.session.add(term)
 
         db.session.commit()
