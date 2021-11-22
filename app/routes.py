@@ -1,3 +1,5 @@
+'''Tilde Routes'''
+
 from flask import render_template, request
 from app import app, db
 from app.models import User, Node, NodeTerm
@@ -16,22 +18,22 @@ def index():
         user=User.query.first()
     )
 
-@app.route("/imdb/<search>/", defaults={'index': 0})
-@app.route("/imdb/<search>/<int:index>")
-def search_imdb(search, index):
+@app.route("/imdb/<search_terms>/", defaults={'search_index': 0})
+@app.route("/imdb/<search_terms>/<int:search_index>")
+def search_imdb(search_terms, search_index):
     force = request.args.get('force') is not None
 
     item = None
-    term = NodeTerm.query.filter_by(term=search).first()
+    term = NodeTerm.query.filter_by(term=search_terms).first()
 
     if force or term is None:
-        # todo: prune based on search
+        # TODO: prune based on search
         if force:
             Node.query.delete()
             NodeTerm.query.delete()
             db.session.commit()
 
-        item = ImdbItem(search, index)
+        item = ImdbItem(search_terms, search_index)
 
         node = Node.query.filter_by(name=item.node.name).first()
 
@@ -60,7 +62,7 @@ def search_imdb(search, index):
                     db.session.add(child_node)
 
         term = NodeTerm(
-            term=search,
+            term=search_terms,
             node=node
         )
         db.session.add(term)
@@ -76,7 +78,7 @@ def search_imdb(search, index):
 @app.route("/wiki/<imdb_page>/<wiki_page>")
 def search_wiki(imdb_page, wiki_page):
     item = ImdbItem(imdb_page, 0)
-    page = get_wiki_url(wiki_page, item.result_release_date)
+    page = get_wiki_url(wiki_page, item.node.timestamp)
 
     return render_template(
         'wiki.html',

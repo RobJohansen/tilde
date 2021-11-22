@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 
+'''
+Node representing IMDB item.
+'''
+
 from datetime import datetime
 from imdb import IMDb
 
-ia = IMDb()
+IA = IMDb()
 
 # constants
 
@@ -14,27 +18,27 @@ KIND_KEY = 'kind'
 DATE_KEY = 'release dates'
 SUB_ITEMS_KEY = 'episodes'
 
-info_set = [MAIN_KEY, DATE_KEY, SUB_ITEMS_KEY]
+INFO_SET = [MAIN_KEY, DATE_KEY, SUB_ITEMS_KEY]
 
 
 # general helpers
 
 def search_items(search):
-    return ia.search_movie(search)
+    return IA.search_movie(search)
 
-def get_item(id, keys=ia.get_movie_infoset()):
-    return ia.get_movie(id, keys)
+def get_item(id, keys=IA.get_movie_infoset()):
+    return IA.get_movie(id, keys)
 
 def update_item(result, key):
-    ia.update(result, info=[key])
+    IA.update(result, info=[key])
 
 
 # imdb / node classes
 
-'''
-Node representing IMDB item.
-'''
 class ImdbNode:
+    '''
+    Node representing IMDB item.
+    '''
 
     id = None
     kind = None
@@ -80,10 +84,11 @@ class ImdbNode:
             self.name,
         )
 
-'''
-Collection of nodes and subnodes.
-'''
 class ImdbItem:
+    '''
+    Collection of nodes and subnodes.
+    '''
+
     # results
     results = None
     result = None
@@ -98,7 +103,7 @@ class ImdbItem:
         self.result = self.results[search_index]
 
         # item
-        item = get_item(self.result.getID(), info_set)
+        item = get_item(self.result.getID(), INFO_SET)
         sub_items = item.get(SUB_ITEMS_KEY, [])
 
         self.node = ImdbNode(item)
@@ -107,16 +112,16 @@ class ImdbItem:
 
         # sub items
         for (s, sub_item_set) in sub_items.items():
-            if (s > 3):
+            if s > 3:
                 continue
 
             self.sub_nodes[s] = {}
 
             for (i, sub_item) in sub_item_set.items():
-                if (i > 2):
+                if i > 2:
                     continue
 
-                ia.update(sub_item, DATE_KEY)
+                IA.update(sub_item, DATE_KEY)
 
                 self.sub_nodes[s][i] = ImdbNode(sub_item)
 

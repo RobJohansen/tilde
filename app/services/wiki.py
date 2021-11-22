@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import requests
-import json
 
 WIKI_URL_ROOT = 'http://en.wikipedia.org'
 
@@ -23,7 +22,7 @@ def get_json(url):
     try:
         return requests.get(url).json()
 
-    except (Exception):
+    except Exception:
         return None
 
 def get_wiki_rev(page_title, timestamp):

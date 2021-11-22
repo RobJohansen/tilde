@@ -52,6 +52,10 @@ pip install -r requirements.txt
 - migrations/*
 - app.db
 
+```
+flask db migrate
+flask shell
+```
 
 # Run
 
