@@ -201,4 +201,4 @@ Temporary Items
 .apdisk
 
 # DB
-db/
+app/db/

@@ -19,7 +19,7 @@ class Node(db.Model):
 
     # fields
     id = Column(Integer, primary_key=True)
-    name = Column(String(64), index=True, unique=True)
+    name = Column(String(64), index=True)
     parent_id = Column(Integer, ForeignKey('node.id'))
     timestamp = Column(DateTime, index=True)
 
