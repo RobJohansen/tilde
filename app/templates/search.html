@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html>
   <head>
-      <title>Flask React</title>
+      <title>Tilde Search</title>
   </head>
   <body>
-    {{ node.id }}<br/>
-    {{ node.name }}<br/>
-    {{ node.timestamp }}<br/>
+    {{ term.name }}<br/>
+    {{ term.node.id }}<br/>
+    {{ term.node.name }}<br/>
+    {{ term.node.timestamp }}<br/>
     <br/>
     <ul>
-      {% for season in node.children %}
+      {% for season in term.node.children %}
         <li>
           <b>{{ season }} - {{ season.timestamp }}</b>
           <ul>
@@ -21,18 +22,18 @@
       {% endfor %}
     </ul>
 
-    {% if item %}
-      {{ item.node.id }}<br/>
-      {{ item.node.name }}<br/>
-      {{ item.node.timestamp }}<br/>
+    {% if result %}
+      {{ result.result_item.id }}<br/>
+      {{ result.result_item.name }}<br/>
+      {{ result.result_item.timestamp }}<br/>
       <br/>
       <ul>
-        {% for i_season, season_episodes in item.sub_nodes.items() %}
+        {% for i_season, season_episodes in result.sub_result_items.items() %}
           <li>
             <b>{{ i_season }}</b>
             <ul>
               {% for i_episode, episode in season_episodes.items() %}
-                <li>{{ i_episode }} - {{ episode.id }} - {{ episode.name }} - {{ episode.timestamp }}</li>
+                <li>{{ i_episode }} - {{ episode.name }} - {{ episode.timestamp }}</li>
               {% endfor %}
             </ul>
           </li>

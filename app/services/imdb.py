@@ -1,16 +1,10 @@
 #!/usr/bin/env python
 
-'''
-Node representing IMDB item.
-'''
-
-from datetime import datetime
 from imdb import IMDb
 
-IA = IMDb()
+from .search import Result, ResultItem
 
 # constants
-
 REGION = 'USA'
 
 MAIN_KEY = 'main'
@@ -20,115 +14,80 @@ SUB_ITEMS_KEY = 'episodes'
 
 INFO_SET = [MAIN_KEY, DATE_KEY, SUB_ITEMS_KEY]
 
+ITEMS_LIMIT = 2
+SUB_ITEMS_LIMIT = 2
 
-# general helpers
+# general imdb result helpers
+IA = IMDb()
 
-def search_items(search):
-    return IA.search_movie(search)
+def search_items(search_terms):
+    return IA.search_movie(search_terms)
 
-def get_item(id, keys=IA.get_movie_infoset()):
-    return IA.get_movie(id, keys)
+def get_item(movie_id, keys=IA.get_movie_infoset()):
+    return IA.get_movie(movie_id, keys)
 
 def update_item(result, key):
-    IA.update(result, info=[key])
+    IA.update(result, info=key)
 
 
-# imdb / node classes
+class ImdbResult(Result):
+    def __init__(self, search_terms, search_index):
+        Result.__init__(self, search_terms)
 
-class ImdbNode:
-    '''
-    Node representing IMDB item.
-    '''
+        # results
+        self.search_results = search_items(search_terms)
+        self.search_result = self.search_results[search_index]
 
-    id = None
-    kind = None
-    name = None
-    timestamp = None
+        # item
+        item = get_item(self.search_result.getID(), INFO_SET)
+        sub_items = item.get(SUB_ITEMS_KEY, [])
 
-    def __parse_keys(self, results):
-        return dict(map(lambda x: x.split("::"), results))
+        self.result_item = ImdbResultItem(item)
 
-    def __parse_key(self, results, key):
-        return self.__parse_keys(results)[key]
+        print("retrieved item: " + str(self.result_item))
 
-    def __to_date_time(self, date_string):
-        return datetime.strptime(' '.join(date_string.split(' ')[:3]), '%d %B %Y')
+        # sub items
+        for (index, sub_item_set) in sub_items.items():
+            if index > ITEMS_LIMIT:
+                continue
 
-    def __get_id(self, item):
-        return item.getID()
+            self.sub_result_items[index] = {}
 
-    def __get_kind(self, item):
-        return item[KIND_KEY]
+            for (i, sub_item) in sub_item_set.items():
+                if i > SUB_ITEMS_LIMIT:
+                    continue
 
-    def __get_name(self, item):
-        return str(item)
+                update_item(sub_item, DATE_KEY)
 
-    def __get_date(self, item):
-        return self.__to_date_time(
-            self.__parse_key(
+                self.sub_result_items[index][i] = ImdbResultItem(sub_item)
+
+                print("retrieved sub-item: " + str(self.sub_result_items[index][i]))
+
+
+# general imdb result item helpers
+def parse_key_map(results):
+    return dict(map(lambda x: x.split("::"), results))
+
+def get_value(results, key):
+    return parse_key_map(results)[key]
+
+def from_timestamp(date_string):
+    from datetime import datetime
+
+    return datetime.strptime(' '.join(date_string.split(' ')[:3]), '%d %B %Y')
+
+class ImdbResultItem(ResultItem):
+    def __init__(self, item):
+        self.item_id = item.getID()
+        self.kind = item[KIND_KEY]
+        self.name = str(item)
+        self.timestamp = from_timestamp(
+            get_value(
                 item[DATE_KEY],
                 REGION
             )
         )
 
-    def __init__(self, item):
-        self.id = self.__get_id(item)
-        self.kind = self.__get_kind(item)
-        self.name = self.__get_name(item)
-        self.timestamp = self.__get_date(item)
 
-    def __repr__(self):
-        return '<[{} {}] {}>'.format(
-            self.kind,
-            self.id,
-            self.name,
-        )
-
-class ImdbItem:
-    '''
-    Collection of nodes and subnodes.
-    '''
-
-    # results
-    results = None
-    result = None
-
-    # items
-    node = None
-    sub_nodes = {}
-
-    def __init__(self, search_term, search_index):
-        # search
-        self.results = search_items(search_term)
-        self.result = self.results[search_index]
-
-        # item
-        item = get_item(self.result.getID(), INFO_SET)
-        sub_items = item.get(SUB_ITEMS_KEY, [])
-
-        self.node = ImdbNode(item)
-
-        print("retrieved item: " + str(self.node))
-
-        # sub items
-        for (s, sub_item_set) in sub_items.items():
-            if s > 3:
-                continue
-
-            self.sub_nodes[s] = {}
-
-            for (i, sub_item) in sub_item_set.items():
-                if i > 2:
-                    continue
-
-                IA.update(sub_item, DATE_KEY)
-
-                self.sub_nodes[s][i] = ImdbNode(sub_item)
-
-                print("retrieved sub-item: " + str(self.sub_nodes[s][i]))
-
-    def __repr__(self):
-        return '<{} (sub: {})>'.format(
-            self.node,
-            len(self.sub_nodes)
-        )
+def get_imdb_result(search_terms, search_index):
+    return ImdbResult(search_terms, search_index)
