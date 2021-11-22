@@ -4,8 +4,22 @@
       <title>Flask React</title>
   </head>
   <body>
-    {{ node.name }}
-    {{ node.timestamp }}
+    {{ node.id }}<br/>
+    {{ node.name }}<br/>
+    {{ node.timestamp }}<br/>
+    <br/>
+    <ul>
+      {% for season in node.children %}
+        <li>
+          <b>{{ season }} - {{ season.timestamp }}</b>
+          <ul>
+            {% for episode in season.children %}
+              <li>{{ episode.name }} - {{ episode.timestamp }}</li>
+            {% endfor %}
+          </ul>
+        </li>
+      {% endfor %}
+    </ul>
 
     {% if item %}
       {{ item.node.id }}<br/>

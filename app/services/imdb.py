@@ -99,7 +99,7 @@ class ImdbItem:
 
         # item
         item = get_item(self.result.getID(), info_set)
-        sub_items = item[SUB_ITEMS_KEY]
+        sub_items = item.get(SUB_ITEMS_KEY, [])
 
         self.node = ImdbNode(item)
 
@@ -107,13 +107,13 @@ class ImdbItem:
 
         # sub items
         for (s, sub_item_set) in sub_items.items():
-            if (s > 1):
+            if (s > 3):
                 continue
 
             self.sub_nodes[s] = {}
 
             for (i, sub_item) in sub_item_set.items():
-                if (i > 5):
+                if (i > 2):
                     continue
 
                 ia.update(sub_item, DATE_KEY)
