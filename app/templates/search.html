@@ -1,13 +1,14 @@
-<!DOCTYPE html>
-<html>
-  <head>
-      <title>Tilde Search</title>
-  </head>
-  <body>
-    {{ term.name }}<br/>
-    {{ term.node.id }}<br/>
-    {{ term.node.name }}<br/>
-    {{ term.node.timestamp }}<br/>
+{% extends "_base.html" %}
+
+{% block title %}Search{% endblock %}
+
+{% block content %}
+    <h1>Node</h1>
+
+    Term Name: {{ term.term }}<br/>
+    Node Id: {{ term.node.id }}<br/>
+    Node Name: {{ term.node.name }}<br/>
+    Timestamp: {{ term.node.timestamp }}<br/>
     <br/>
     <ul>
       {% for season in term.node.children %}
@@ -22,10 +23,11 @@
       {% endfor %}
     </ul>
 
+    <h1>Search</h1>
     {% if result %}
-      {{ result.result_item.id }}<br/>
-      {{ result.result_item.name }}<br/>
-      {{ result.result_item.timestamp }}<br/>
+      Id: {{ result.result_item.id }}<br/>
+      Name: {{ result.result_item.name }}<br/>
+      Timestamp: {{ result.result_item.timestamp }}<br/>
       <br/>
       <ul>
         {% for i_season, season_episodes in result.sub_result_items.items() %}
@@ -40,5 +42,4 @@
         {% endfor %}
       </ul>
     {% endif %}
-  </body>
-</html>
+{% endblock %}

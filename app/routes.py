@@ -1,7 +1,7 @@
 '''Tilde Routes'''
 
 from datetime import datetime
-from flask import render_template, request
+from flask import request, jsonify, render_template
 from app import app, db
 from app.models import User, Node, NodeTerm
 
@@ -10,6 +10,17 @@ from app.services.imdb import get_imdb_result
 
 RENDER_SERVICE = "WIKIPEDIA"
 SEARCH_SERVICE = "IMDB"
+
+def render_template_with_context(template, **kwargs):
+    # TODO: user
+    user = User.query.first()
+
+    return render_template(
+        template,
+        user=user.email,
+        **kwargs
+    )
+
 
 def upsert_result(result):
     node = Node.query.filter_by(name=result.result_item.name).first()
@@ -45,7 +56,22 @@ def upsert_result(result):
     )
     db.session.add(term)
 
+    # commit upserts
     db.session.commit()
+
+    return term
+
+
+def get_term(search_terms, search_index):
+    term = NodeTerm.query.filter_by(term=search_terms).first()
+
+    if term is None:
+        if SEARCH_SERVICE == "IMDB":
+            result = get_imdb_result(search_terms, search_index)
+        else:
+            NotImplementedError()
+
+        term = upsert_result(result)
 
     return term
 
@@ -57,40 +83,37 @@ def favicon():
 
 @app.route("/")
 def index():
-    return render_template(
-        'index.html',
-        user=User.query.first()
+    return render_template_with_context(
+        'index.html'
     )
 
-
-@app.route("/purge")
+@app.route('/purge', methods=['POST'])
 def purge():
-    Node.query.delete()
     NodeTerm.query.delete()
+    Node.query.delete()
+
     db.session.commit()
 
-    return "success"
+    return '', 200
+
+
+@app.route('/find', methods=['GET'])
+def find():
+    json = request.get_json()
+
+    term = get_term(json.get('terms'), json.get('index', 0))
+
+    return jsonify(term.term)
 
 
 @app.route("/search/<search_terms>/", defaults={'search_index': 0})
 @app.route("/search/<search_terms>/<int:search_index>")
 def search(search_terms, search_index):
-    result = None
+    term = get_term(search_terms, search_index)
 
-    term = NodeTerm.query.filter_by(term=search_terms).first()
-
-    if term is None:
-        if SEARCH_SERVICE == "IMDB":
-            result = get_imdb_result(search_terms, search_index)
-        else:
-            NotImplementedError()
-
-        term = upsert_result(result)
-
-    return render_template(
+    return render_template_with_context(
         'search.html',
-        term=term,
-        result=result
+        term=term
     )
 
 
@@ -113,7 +136,7 @@ def render(page_terms):
     else:
         NotImplementedError()
 
-    return render_template(
+    return render_template_with_context(
         'render.html',
         url=url,
         node=node,
