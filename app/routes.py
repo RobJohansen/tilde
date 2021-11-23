@@ -51,7 +51,7 @@ def upsert_result(result):
 
     # register term
     term = NodeTerm(
-        term=result.search_terms,
+        name=result.search_terms,
         node=node
     )
     db.session.add(term)
@@ -63,7 +63,7 @@ def upsert_result(result):
 
 
 def get_term(search_terms, search_index):
-    term = NodeTerm.query.filter_by(term=search_terms).first()
+    term = NodeTerm.query.filter_by(name=search_terms).first()
 
     if term is None:
         if SEARCH_SERVICE == "IMDB":
@@ -103,7 +103,7 @@ def find():
 
     term = get_term(json.get('terms'), json.get('index', 0))
 
-    return jsonify(term.term)
+    return jsonify(term.name)
 
 
 @app.route("/search/<search_terms>/", defaults={'search_index': 0})

@@ -36,7 +36,7 @@ class NodeTerm(db.Model):
 
     # fields
     id = Column(Integer, primary_key=True)
-    term = Column(String(64), index=True, unique=True)
+    name = Column(String(64), index=True, unique=True)
     node_id = Column(Integer, ForeignKey('node.id'))
     node = db.relationship("Node", back_populates="terms")
 
@@ -44,4 +44,4 @@ class NodeTerm(db.Model):
     node = relationship("Node", back_populates="terms")
 
     def __repr__(self):
-        return '<NodeTerm {} {}>'.format(self.term, self.node_id)
+        return '<NodeTerm {} {}>'.format(self.name, self.node_id)
