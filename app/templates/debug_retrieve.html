@@ -1,15 +1,21 @@
-{% extends "_base.html" %}
-
-{% block title %}Search{% endblock %}
-
-{% block content %}
-    <h1>Node</h1>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+      {% block head %}
+      <link rel="stylesheet" href="/static/style.css" />
+      <title>{% block title %}{% endblock %} - Tilde</title>
+      {% endblock %}
+  </head>
+  <body>
+    <h1>Debug Retrieve</h1>
 
     Term Name: {{ term.name }}<br/>
     Node Id: {{ term.node.id }}<br/>
     Node Name: {{ term.node.name }}<br/>
     Timestamp: {{ term.node.timestamp }}<br/>
+
     <br/>
+
     <ul>
       {% for season in term.node.children %}
         <li>
@@ -23,7 +29,6 @@
       {% endfor %}
     </ul>
 
-    <h1>Search</h1>
     {% if result %}
       Id: {{ result.result_item.id }}<br/>
       Name: {{ result.result_item.name }}<br/>
@@ -42,4 +47,5 @@
         {% endfor %}
       </ul>
     {% endif %}
-{% endblock %}
+  </body>
+</html>

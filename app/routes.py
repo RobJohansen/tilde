@@ -9,8 +9,8 @@ from app.services.wiki import get_wiki_rev_url
 from app.services.imdb import get_imdb_result
 
 # RENDER CONFIG
-RENDER_SERVICE = "WIKIPEDIA"
 SEARCH_SERVICE = "IMDB"
+RENDER_SERVICE = "WIKIPEDIA"
 
 
 # PAGE ENDPOINTS
@@ -22,29 +22,43 @@ def index():
 
 
 # SEARCH ENDPOINTS
-@app.route('/find', methods=['GET'])
-def find():
-    search_terms = request.args.get('terms')
-    search_index = request.args.get('index')
+@app.route('/search', methods=['GET'])
+def search():
+    node_id = request.args.get('node_id')
+    terms = request.args.get('terms')
 
-    term = get_term(search_terms, search_index)
+    matches = Node.query.filter_by(
+        parent_id=(None if node_id == '' else node_id)
+    ).filter(
+        Node.name.like("%{}%".format(terms))
+    ).all()
 
     return jsonify({
         'results': [
             {
-                'name': term.name
-            }
+                'id': child.id,
+                'name': child.name,
+                'timestamp': child.timestamp
+            } for child in matches
         ]
     })
 
 
-@app.route("/search/<search_terms>/", defaults={'search_index': 0})
-@app.route("/search/<search_terms>/<int:search_index>")
-def search(search_terms, search_index):
-    term = get_term(search_terms, search_index)
+@app.route("/retrieve/<terms>/", defaults={'results_index': 0})
+@app.route("/retrieve/<terms>/<int:results_index>")
+def retrieve(terms, results_index):
+    term = NodeTerm.query.filter_by(name=terms).first()
+
+    if term is None:
+        if SEARCH_SERVICE == "IMDB":
+            result = get_imdb_result(terms, results_index)
+        else:
+            NotImplementedError()
+
+        term = upsert_result(result)
 
     return render_template_with_context(
-        'search.html',
+        'debug_retrieve.html',
         term=term
     )
 
@@ -106,20 +120,6 @@ def purge():
 
 
 # DB HELPERS
-def get_term(search_terms, search_index):
-    term = NodeTerm.query.filter_by(name=search_terms).first()
-
-    if term is None:
-        if SEARCH_SERVICE == "IMDB":
-            result = get_imdb_result(search_terms, search_index)
-        else:
-            NotImplementedError()
-
-        term = upsert_result(result)
-
-    return term
-
-
 def upsert_result(result):
     node = Node.query.filter_by(name=result.result_item.name).first()
 

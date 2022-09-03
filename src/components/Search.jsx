@@ -1,31 +1,60 @@
-import React from 'react';
+import React from "react";
 
-import Tild from "./Tild.jsx";
+import AsyncSelect from "react-select/async";
 
-class Search extends React.Component {
+class SelectSearch extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      tild: <Tild />
+      tilds: null
     };
-
-    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-  handleSubmit(e) {
-    alert('A name was submitted: ' + this.state.tild);
-    e.preventDefault();
+  latestTild() {
+    return this.state.tilds?.slice(-1)[0];
   }
+
+  onChange = value => {
+    this.setState({
+      tilds: value
+    });
+  }
+
+  loadOptions = (input) => {
+    const node_id = this.latestTild()?.id ?? '';
+
+    return fetch(`search?node_id=${node_id}&terms=${input}`)
+      .then(response => response.json())
+      .then(response => response.results);
+  };
 
   render() {
+    const { tilds } = this.state;
+
     return (
-      <form onSubmit={this.handleSubmit}>
-        {this.state.tild}
-        <input type="submit" value="Submit" />
-      </form>
-    )
+      <div>
+        <AsyncSelect
+          isMulti
+          value={tilds}
+          getOptionValue={e => e.id}
+          getOptionLabel={e => e.name}
+          onChange={this.onChange}
+          loadOptions={this.loadOptions}
+        />
+
+        <div>
+          {tilds?.map((tild) =>
+            <span key={tild.id}>{tild.name}~</span>
+          )}
+        </div>
+
+        <div>
+          {this.latestTild()?.timestamp}
+        </div>
+      </div>
+    );
   }
 };
 
-export default Search;
+export default SelectSearch;
