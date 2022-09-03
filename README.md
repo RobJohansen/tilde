@@ -1,15 +1,32 @@
 # Project Structure
 
-# Yarn
 
-## Packages
+# Packages
+
+## Yarn
 - package.json
-- yarn.lock
+  - yarn.lock
 
-## Config
+```
+yarn install
+yarn run dev
+```
+
+## Python Flask
+- requirements.txt
+
+```
+pip install -r requirements.txt
+pip freeze > requirements.txt
+```
+
+
+# Workflow
+
+## Input
 - webpack.config.js
 
-## Workflow
+## Dependencies
 - yarn
   - webpack
   - babel
@@ -17,51 +34,57 @@
 ## Output
 - static/bundle.js
 
-## Source
+
+# App
+
+# Config
+- .flaskenv
+- app/config/__init__.py
+
+## React Templates
 - src/index.jsx
 
 ```
-yarn install
-yarn run dev
+yarn run start
 ```
 
-# Python (Flask)
-
-## Packages
-- requirements.txt
-
-
-## Config
-- .flaskenv
-- tilde.py
+## Flask App
 - app/__init__.py
-
-## Source
-
 - app/models.py
 - app/routes.py
 - app/templates/*
 
 ```
-pip freeze > requirements.txt
-pip install -r requirements.txt
+flask run
 ```
 
-# DB (SQLAlchemy)
-- config.py
-- migrations/*
-- app.db
+## Flask Shell
+- tilde.py
 
 ```
-flask db migrate
 flask shell
 ```
 
-# Run
+# DB (SQLAlchemy)
+- app/db/app.db
+- migrations/*
 
 ```
-flask run
+flask db migrate
+```
+
+
+# Example
+
+## Init
+```
+yarn install
+pip install -r requirements.txt
+```
+
+## Run (Separate Terminals)
+```
 yarn run start
-```
-
+flask run
 http://127.0.0.1:5000
+```
