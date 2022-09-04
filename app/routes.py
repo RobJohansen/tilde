@@ -5,25 +5,12 @@ from flask import request, jsonify, render_template
 from app import app, db
 from app.models import User, Node, NodeTerm
 
-from app.services.wiki import get_wiki_rev_url
-from app.services.imdb import get_imdb_result
+from app.services.render import get_render_result
+from app.services.retrieve import get_retrieve_result, upsert_retrieve_result
 
-# RENDER CONFIG
-SEARCH_SERVICE = "IMDB"
-RENDER_SERVICE = "WIKIPEDIA"
-
-
-# PAGE ENDPOINTS
-@app.route("/")
-def index():
-    return render_template_with_context(
-        'index.html'
-    )
-
-
-# SEARCH ENDPOINTS
-@app.route('/search', methods=['GET'])
-def search():
+# JSON ENDPOINTS
+@app.route('/search/nodes', methods=['GET'])
+def search_nodes():
     node_id = request.args.get('node_id')
     terms = request.args.get('terms')
 
@@ -44,59 +31,35 @@ def search():
     })
 
 
-@app.route("/retrieve/<terms>/", defaults={'results_index': 0})
-@app.route("/retrieve/<terms>/<int:results_index>")
-def retrieve(terms, results_index):
-    term = NodeTerm.query.filter_by(name=terms).first()
+@app.route('/search/terms', methods=['GET'])
+def search_terms():
+    # Get Timestamp
+    node_id = request.args.get('node_id')
+    date_time = request.args.get('date_time')
+    (_, timestamp) = get_node_timestamp(node_id, date_time)
 
-    if term is None:
-        if SEARCH_SERVICE == "IMDB":
-            result = get_imdb_result(terms, results_index)
-        else:
-            NotImplementedError()
+    # Get Render Result
+    terms = request.args.get('terms')
+    render_result = get_render_result(terms, timestamp)
 
-        term = upsert_result(result)
-
-    return render_template_with_context(
-        'debug_retrieve.html',
-        term=term
-    )
+    return jsonify({
+        'url': render_result.url
+    })
 
 
 # RENDER ENDPOINTS
-@app.route("/render/<page_terms>/")
-def render(page_terms):
-    url = None
-    node = None
-    date_time = None
-
-    node_id = request.args.get('node_id')
-
-    if node_id:
-        node = Node.query.get(node_id)
-        date_time = node.timestamp
-    else:
-        date_time = datetime.strptime(request.args.get('date_time'), '%Y%m%d')
-
-    if SEARCH_SERVICE == "IMDB":
-        url = get_wiki_rev_url(page_terms, date_time)
-    else:
-        NotImplementedError()
-
-    return render_template_with_context(
-        'render.html',
-        url=url,
-        node=node,
-        date_time=date_time
-    )
-
-
 @app.route('/favicon.ico')
 def favicon():
     return app.send_static_file('favicon.ico')
 
 
-# RENDER HELPERS
+@app.route("/")
+def index():
+    return render_template_with_context(
+        'index.html'
+    )
+
+
 def render_template_with_context(template, **kwargs):
     # TODO: user
     user = User.query.first()
@@ -105,6 +68,42 @@ def render_template_with_context(template, **kwargs):
         template,
         user=user.email,
         **kwargs
+    )
+
+
+# DEBUG HELPERS
+@app.route("/debug/retrieve/<terms>/", defaults={'results_index': 0})
+@app.route("/debug/retrieve/<terms>/<int:results_index>")
+def debug_retrieve(terms, results_index):
+    term = NodeTerm.query.filter_by(name=terms).first()
+
+    if term is None:
+        retrieve_result = get_retrieve_result(terms, results_index)
+
+        term = upsert_retrieve_result(retrieve_result)
+
+    return render_template_with_context(
+        'debug_retrieve.html',
+        term=term
+    )
+
+
+@app.route("/debug/render/<terms>/")
+def debug_render(terms):
+    # Get Timestamp
+    node_id = request.args.get('node_id')
+    date_time = request.args.get('date_time')
+    (node, timestamp) = get_node_timestamp(node_id, date_time)
+
+    # Get Render Result
+    terms = request.args.get('terms')
+    render_result = get_render_result(terms, timestamp)
+
+    return render_template_with_context(
+        'debug_render.html',
+        url=render_result.url,
+        node=node,
+        date_time=date_time
     )
 
 
@@ -119,42 +118,17 @@ def purge():
     return '', 200
 
 
-# DB HELPERS
-def upsert_result(result):
-    node = Node.query.filter_by(name=result.result_item.name).first()
+# HELPERS
+def get_node_timestamp(node_id, date_time):
+    node = None
+    timestamp = None
 
-    # create node structure
-    if node is None:
-        node = Node(
-            name=result.result_item.name,
-            timestamp=result.result_item.timestamp
-        )
-        db.session.add(node)
+    if node_id:
+        node = Node.query.get(node_id)
+        timestamp = node.timestamp
+    elif date_time:
+        timestamp = datetime.strptime(date_time, '%Y%m%d')
+    else:
+        timestamp = datetime.now()
 
-        for (key, sub_result_items) in result.sub_result_items.items():
-            parent_node = Node(
-                name="Season {}".format(key),
-                timestamp=min(map(lambda n: n.timestamp, sub_result_items.values())),
-                parent=node
-            )
-            db.session.add(parent_node)
-
-            for (_, sub_result_item) in sub_result_items.items():
-                child_node = Node(
-                    name=sub_result_item.name,
-                    timestamp=sub_result_item.timestamp,
-                    parent=parent_node
-                )
-                db.session.add(child_node)
-
-    # register term
-    term = NodeTerm(
-        name=result.search_terms,
-        node=node
-    )
-    db.session.add(term)
-
-    # commit upserts
-    db.session.commit()
-
-    return term
+    return (node, timestamp)

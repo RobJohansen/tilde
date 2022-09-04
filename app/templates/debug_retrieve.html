@@ -1,12 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-      {% block head %}
-      <link rel="stylesheet" href="/static/style.css" />
-      <title>{% block title %}{% endblock %} - Tilde</title>
-      {% endblock %}
-  </head>
-  <body>
+{% extends "_base.html" %}
+
+{% block title %}Debug Retrieve{% endblock %}
+
+{% block content %}
     <h1>Debug Retrieve</h1>
 
     Term Name: {{ term.name }}<br/>
@@ -47,5 +43,4 @@
         {% endfor %}
       </ul>
     {% endif %}
-  </body>
-</html>
+{% endblock %}

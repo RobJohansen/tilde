@@ -1,6 +1,7 @@
 import React from "react";
 
 import AsyncSelect from "react-select/async";
+import './../extensions';
 
 class SelectSearch extends React.Component {
   constructor(props) {
@@ -11,20 +12,18 @@ class SelectSearch extends React.Component {
     };
   }
 
-  latestTild() {
-    return this.state.tilds?.slice(-1)[0];
-  }
-
-  onChange = value => {
+  onChange = (value) => {
     this.setState({
       tilds: value
     });
+
+    this.props.handleSearchUpdate(value.last()?.id);
   }
 
   loadOptions = (input) => {
-    const node_id = this.latestTild()?.id ?? '';
+    const node_id = this.state.tilds?.last()?.id ?? '';
 
-    return fetch(`search?node_id=${node_id}&terms=${input}`)
+    return fetch(`search/nodes?node_id=${node_id}&terms=${input}`)
       .then(response => response.json())
       .then(response => response.results);
   };
@@ -50,7 +49,7 @@ class SelectSearch extends React.Component {
         </div>
 
         <div>
-          {this.latestTild()?.timestamp}
+          {this.state.tilds?.last()?.timestamp}
         </div>
       </div>
     );
