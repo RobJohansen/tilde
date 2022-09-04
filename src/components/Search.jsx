@@ -23,7 +23,7 @@ class SelectSearch extends React.Component {
   loadOptions = (input) => {
     const node_id = this.state.tilds?.last()?.id ?? '';
 
-    return fetch(`search?node_id=${node_id}&terms=${input}`)
+    return fetch(`search/nodes?node_id=${node_id}&terms=${input}`)
       .then(response => response.json())
       .then(response => response.results);
   };

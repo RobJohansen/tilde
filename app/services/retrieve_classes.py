@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-class Result:
+class RetrieveResult:
     '''
-    Collection of result items and sub items.
+    Collection of retrieve result items and sub items.
     '''
 
     # terms
@@ -25,9 +25,9 @@ class Result:
             len(self.sub_result_items)
         )
 
-class ResultItem:
+class RetrieveResultItem:
     '''
-    Representing item of result.
+    Representing item of retrieve result.
     '''
 
     item_id = None

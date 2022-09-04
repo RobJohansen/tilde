@@ -32,15 +32,23 @@ class App extends React.Component {
   update = () => {
     const { node_id, terms } = this.state;
 
-    console.log(`refreshing with (node: ${node_id}, terms: ${terms}`);
+    if ((node_id ?? '') == '' || (terms ?? '') == '') {
+      console.log(`clearing page`);
 
-    fetch(`search/page?node_id=${node_id ?? ''}&terms=${terms}`)
-      .then(response => response.json())
-      .then(response =>
-        this.setState({
-          url: response.url
-        })
-      );
+      this.setState({
+        url: ''
+      })
+    } else {
+      console.log(`updating page (node: ${node_id}, terms: ${terms})`);
+
+      fetch(`search/terms?node_id=${node_id ?? ''}&terms=${terms}`)
+        .then(response => response.json())
+        .then(response =>
+          this.setState({
+            url: response.url
+          })
+        );
+    }
   }
 
   render() {
@@ -48,7 +56,7 @@ class App extends React.Component {
 
     return (
       <div>
-        <input name="terms" style={{float: "left"}} onChange={this.handleTermsChange} />
+        <input name="terms" onChange={this.handleTermsChange} />
 
         <Search handleSearchUpdate={this.handleSearchUpdate} />
 
