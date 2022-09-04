@@ -35,8 +35,6 @@ def get_wiki_query(page_title, page_timestamp):
         'timestamp':  page_timestamp.strftime(WIKI_DATE_FORMAT)
     })
 
-    print(url)
-
     return get_json(url)
 
 
