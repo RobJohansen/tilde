@@ -63,6 +63,32 @@ def retrieve(terms, results_index):
     )
 
 
+@app.route('/search/page', methods=['GET'])
+def search_page():
+    url = None
+    node = None
+    timestamp = None
+
+    node_id = request.args.get('node_id')
+    terms = request.args.get('terms')
+
+    if node_id:
+        node = Node.query.get(node_id)
+        timestamp = node.timestamp
+    else:
+        timestamp = datetime.strptime(request.args.get('date_time'), '%Y%m%d')
+
+    if SEARCH_SERVICE == "IMDB":
+        url = get_wiki_rev_url(terms, timestamp)
+    else:
+        NotImplementedError()
+
+    return jsonify({
+        'url': url,
+        'timestamp': timestamp
+    })
+
+
 # RENDER ENDPOINTS
 @app.route("/render/<page_terms>/")
 def render(page_terms):
