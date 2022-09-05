@@ -11,39 +11,35 @@ from app.services.retrieve import get_retrieve_result, upsert_retrieve_result
 # JSON ENDPOINTS
 @app.route('/search/nodes', methods=['GET'])
 def search_nodes():
-    node_id = request.args.get('node_id')
-    terms = request.args.get('terms')
-
-    matches = Node.query.filter_by(
-        parent_id=(None if node_id == '' else node_id)
-    ).filter(
-        Node.name.like("%{}%".format(terms))
-    ).all()
+    # Get Nodes
+    parent_id = request.args.get('parent_id')
+    query = request.args.get('query')
+    nodes = search_nodes(parent_id, query)
 
     return jsonify({
         'results': [
             {
-                'id': child.id,
-                'name': child.name,
-                'timestamp': child.timestamp
-            } for child in matches
+                'id': node.id,
+                'name': node.name,
+                'timestamp': node.timestamp
+            } for node in nodes
         ]
     })
 
 
-@app.route('/search/terms', methods=['GET'])
-def search_terms():
+@app.route('/search/page', methods=['GET'])
+def search_page():
     # Get Timestamp
     node_id = request.args.get('node_id')
     date_time = request.args.get('date_time')
     (_, timestamp) = get_node_timestamp(node_id, date_time)
 
     # Get Render Result
-    terms = request.args.get('terms')
-    render_result = get_render_result(terms, timestamp)
+    query = request.args.get('query')
+    render_result = get_render_result(query, timestamp)
 
     return jsonify({
-        'url': render_result.url
+        'page_url': render_result.url
     })
 
 
@@ -75,7 +71,7 @@ def render_template_with_context(template, **kwargs):
 @app.route("/debug/retrieve/<terms>/", defaults={'results_index': 0})
 @app.route("/debug/retrieve/<terms>/<int:results_index>")
 def debug_retrieve(terms, results_index):
-    term = NodeTerm.query.filter_by(name=terms).first()
+    term = get_node_term(terms)
 
     if term is None:
         retrieve_result = get_retrieve_result(terms, results_index)
@@ -119,6 +115,19 @@ def purge():
 
 
 # HELPERS
+def search_nodes(parent_id, query):
+    return Node.query.filter_by(
+        parent_id=(None if parent_id == '' else parent_id)
+    ).filter(
+        Node.name.like("%{}%".format(query))
+    ).all()
+
+
+def get_node_term(terms):
+    return NodeTerm.query.filter_by(
+        name=terms
+    ).first()
+
 def get_node_timestamp(node_id, date_time):
     node = None
     timestamp = None
