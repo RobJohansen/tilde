@@ -1,7 +1,12 @@
 import React from 'react';
 import { render } from 'react-dom';
 
-import TypeaheadSearch from "./components/TypeaheadSearch.jsx";
+import Search from "./components/Search.jsx";
+
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+
+import 'bootstrap/dist/css/bootstrap.css';
 
 class App extends React.Component {
 
@@ -9,28 +14,19 @@ class App extends React.Component {
     super(props)
 
     this.state = {
-      node_id: null,
       query: null,
+      node_id: null,
       page_url: null
     };
 
-    this.handleSearchUpdate = this.handleSearchUpdate.bind(this)
+    this.onSearchUpdate = this.onSearchUpdate.bind(this)
   }
 
-  handleSearchUpdate = (value) => {
+  onSearchUpdate = (query, node_id) => {
     this.setState({
-      node_id: value
-    }, this.updatePage);
-  }
-
-  handleQueryChange = (event) => {
-    this.setState({
-      query: event.target.value
-    }, this.updatePage);
-  }
-
-  updatePage = () => {
-    const { node_id, query } = this.state;
+      query: query,
+      node_id: node_id
+    });
 
     if ((node_id ?? '') == '' || (query ?? '') == '') {
       console.log(`clearing page`);
@@ -55,12 +51,14 @@ class App extends React.Component {
     const { page_url } = this.state;
 
     return (
-      <div>
-        <input name="query" onChange={this.handleQueryChange} />
-        <TypeaheadSearch handleSearchUpdate={this.handleSearchUpdate} />
-
-        <iframe src={page_url} width="100%" height="800px" ></iframe>
-      </div>
+      <Container>
+        <Row>
+          <Search onSearchUpdate={this.onSearchUpdate} />
+        </Row>
+        <Row>
+          <iframe src={page_url} width="100%" height="800px" border="0" ></iframe>
+        </Row>
+      </Container>
     );
   }
 }

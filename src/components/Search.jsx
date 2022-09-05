@@ -1,13 +1,22 @@
 import React from 'react';
 
 import Stack from "../types/Stack.jsx";
+
+import { DateTime } from 'luxon';
 import { AsyncTypeahead } from 'react-bootstrap-typeahead';
 
-class TypeaheadSearch extends React.Component {
+import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
+import InputGroup from 'react-bootstrap/InputGroup';
+
+import 'react-bootstrap-typeahead/css/Typeahead.css';
+
+class Search extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
+      query: '',
       nodes: new Stack(),
       options: [],
       selected: [],
@@ -16,7 +25,18 @@ class TypeaheadSearch extends React.Component {
   }
 
   updateParent = () => {
-    this.props.handleSearchUpdate(this.state.nodes.peek()?.id);
+    const { query, nodes } = this.state;
+
+    this.props.onSearchUpdate(
+      query,
+      nodes.peek()?.id
+    );
+  }
+
+  onQueryUpdate = (event) => {
+    this.setState({
+      query: event.target.value
+    }, this.updateParent);
   }
 
   renderMenuItemChildren = (option) => (
@@ -29,9 +49,9 @@ class TypeaheadSearch extends React.Component {
     console.log(`input changed ${input}`);
   };
 
-  onChange = (value) => {
+  onChange = (values) => {
     this.setState({
-      selected: value
+      selected: values
     });
   };
 
@@ -81,7 +101,7 @@ class TypeaheadSearch extends React.Component {
       isLoading: true
     });
 
-    const parent_id = this.state.nodes?.peek()?.id ?? '';
+    const parent_id = this.state.nodes.peek()?.id ?? '';
 
     fetch(`search/nodes?parent_id=${parent_id}&query=${query}`)
       .then(response => response.json())
@@ -94,17 +114,24 @@ class TypeaheadSearch extends React.Component {
   render() {
     const { options, isLoading, selected, nodes } = this.state;
 
+    const node = nodes.peek();
+    const timestamp = node ? DateTime.fromHTTP(node.timestamp) : DateTime.now();
+
     return (
-      <div>
-        <div>
-          {nodes.items.map((node) =>
-            <span key={node.id}>~{node.name}</span>
-          )}
-        </div>
+      <InputGroup>
+        <Form.Control type="input" placeholder="Page..." onChange={this.onQueryUpdate} />
+
+        <InputGroup.Text> ~ </InputGroup.Text>
+
+        {
+          nodes.items.map((node) =>
+            <Button variant="outline-secondary" key={node.id}>~ {node.name}</Button>
+          )
+        }
 
         <AsyncTypeahead
-          id="search"
-          placeholder="Search..."
+          id="tilds"
+          placeholder="Tilds..."
           minLength={2}
           useCache={false}
           labelKey="name"
@@ -116,14 +143,14 @@ class TypeaheadSearch extends React.Component {
           options={options}
           selected={selected}
           isLoading={isLoading}
+          class="clearfix"
         />
 
-        <div>
-          {nodes?.peek()?.timestamp}
-        </div>
-      </div>
+        <InputGroup.Text>{timestamp.toFormat('yyyy-MM-dd')}</InputGroup.Text>
+
+      </InputGroup>
     );
   }
 };
 
-export default TypeaheadSearch;
+export default Search;
