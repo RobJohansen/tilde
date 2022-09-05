@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from 'react-dom';
 
-import Search from "./components/Search.jsx";
+import SelectSearch from "./components/SelectSearch.jsx";
 
 class App extends React.Component {
 
@@ -10,57 +10,56 @@ class App extends React.Component {
 
     this.state = {
       node_id: null,
-      terms: null,
-      url: null
+      query: null,
+      page_url: null
     };
 
     this.handleSearchUpdate = this.handleSearchUpdate.bind(this)
   }
 
-  handleTermsChange = (event) => {
-    this.setState({
-      terms: event.target.value
-    }, this.update);
-  }
-
   handleSearchUpdate = (value) => {
     this.setState({
       node_id: value
-    }, this.update);
+    }, this.updatePage);
   }
 
-  update = () => {
-    const { node_id, terms } = this.state;
+  handleQueryChange = (event) => {
+    this.setState({
+      query: event.target.value
+    }, this.updatePage);
+  }
 
-    if ((node_id ?? '') == '' || (terms ?? '') == '') {
+  updatePage = () => {
+    const { node_id, query } = this.state;
+
+    if ((node_id ?? '') == '' || (query ?? '') == '') {
       console.log(`clearing page`);
 
       this.setState({
-        url: ''
+        page_url: ''
       })
     } else {
-      console.log(`updating page (node: ${node_id}, terms: ${terms})`);
+      console.log(`updating page (node: ${node_id}, query: ${query})`);
 
-      fetch(`search/terms?node_id=${node_id ?? ''}&terms=${terms}`)
+      fetch(`search/page?node_id=${node_id}&query=${query}`)
         .then(response => response.json())
         .then(response =>
           this.setState({
-            url: response.url
+            page_url: response.page_url
           })
         );
     }
   }
 
   render() {
-    const { node_id, terms, url } = this.state;
+    const { page_url } = this.state;
 
     return (
       <div>
-        <input name="terms" onChange={this.handleTermsChange} />
+        <input name="query" onChange={this.handleQueryChange} />
+        <SelectSearch handleSearchUpdate={this.handleSearchUpdate} />
 
-        <Search handleSearchUpdate={this.handleSearchUpdate} />
-
-        <iframe src={url} width="100%" height="800px" ></iframe>
+        <iframe src={page_url} width="100%" height="800px" ></iframe>
       </div>
     );
   }
