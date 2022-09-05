@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from 'react-dom';
 
-import SelectSearch from "./components/SelectSearch.jsx";
+import TypeaheadSearch from "./components/TypeaheadSearch.jsx";
 
 class App extends React.Component {
 
@@ -57,7 +57,7 @@ class App extends React.Component {
     return (
       <div>
         <input name="query" onChange={this.handleQueryChange} />
-        <SelectSearch handleSearchUpdate={this.handleSearchUpdate} />
+        <TypeaheadSearch handleSearchUpdate={this.handleSearchUpdate} />
 
         <iframe src={page_url} width="100%" height="800px" ></iframe>
       </div>
