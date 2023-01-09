@@ -17,7 +17,7 @@
     },
     "dependencies": {
         "css-loader": "^6.7.1",
-        "luxon": "^3.0.3",
+        "luxon": "^3.2.1",
         "react": "^16.5.2",
         "react-bootstrap": "^2.5.0",
         "react-bootstrap-typeahead": "^6.0.0-rc.3",
